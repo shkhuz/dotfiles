@@ -1,112 +1,71 @@
-call plug#begin('~/.vim/plugged')
-Plug 'scrooloose/nerdtree'
-Plug 'tpope/vim-unimpaired'
-Plug 'tpope/vim-commentary'
-Plug 'sheerun/vim-polyglot'
+call plug#begin()
+Plug 'ziglang/zig.vim'
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'morhetz/gruvbox'
-Plug '~/vim-plugins/aria'
-Plug '~/vim-plugins/hcol'
+Plug 'tpope/vim-commentary'
+Plug 'psliwka/vim-smoothie'
+Plug 'lifepillar/vim-mucomplete'
+Plug '~/projects/aria.vim'
+Plug 'rust-lang/rust.vim'
 call plug#end()
 
-"" General Settings
-set backspace=indent,eol,start
-color hcol
-syntax on
-let mapleader=" "
-if has("gui_running")
-	set guifont="DejaVu Sans Mono":h11:b
-endif
-set clipboard=unnamedplus
-set tabstop=4
-set softtabstop=4
-set shiftwidth=4
+filetype plugin indent on
 set expandtab
-"" add files to ~/.trash
-set backupdir=~/.trash//
-set directory=~/.trash//
-set undodir=~/.trash//
-set autoindent
+syntax on
+color hcol
+set background=dark
+set ts=4
+set sw=4
+set colorcolumn=81
+set clipboard=unnamedplus
 set hidden
-set autoread
-set nocompatible
-set smartindent
-set showmatch
-set comments=sl:/*,mb:\ *,elx:\ */
-set termencoding=utf-8
-set enc=utf-8
-set fenc=utf-8
-set virtualedit+=block
-set incsearch
-set ignorecase
-set smartcase
-set hlsearch
-set wildmenu
-set nrformats+=alpha
-set wrap
-set number
-set cursorline
-set colorcolumn=80
-set textwidth=80
-hi ColorColumn ctermbg=234
-let loaded_matchparen = 1
+set noswapfile
+set nu
+set rnu
+set wildignore+=*.o,*/build/*,*/target/*
+set mouse=a
+let mapleader=" "
 
-" Key Mappings
-nnoremap <leader>[ `[V`]<
-nnoremap <leader>] `[V`]>
+highlight ColorColumn ctermbg=236 guibg=lightgrey
+highlight MatchParen cterm=none ctermbg=darkblue ctermfg=none
+highlight LineNr cterm=none ctermfg=79
+highlight CursorLineNr cterm=bold ctermfg=79
+
+autocmd BufRead,BufNewFile *.htm,*.html setlocal tabstop=2 shiftwidth=2 softtabstop=2
+
+set completeopt+=menuone
+set completeopt+=noselect
+set shortmess+=c
+let g:mucomplete#enable_auto_at_startup = 1
+
+nnoremap : ;
+nnoremap ; :
+nnoremap Y y$
+nnoremap gp `[v`]
+nnoremap <C-a> ^
+nnoremap <A-x> <C-a>
+nnoremap <C-e> $
 nnoremap j gj
 nnoremap k gk
-nnoremap <leader>n :cn<CR>
-nnoremap <leader>p :cp<CR>
-nnoremap ; :
-nnoremap : ;
-nnoremap Y y$
+vnoremap j gj
+vnoremap k gk
+vnoremap : ;
+vnoremap ; :
 
-nmap <Up> <Nop>
-nmap <Down> <Nop>
-nmap <Left> <Nop>
-nmap <Right> <Nop>
+nnoremap <C-j> }
+nnoremap <C-k> {
+nnoremap , :b#<Cr>
+vnoremap <C-j> }
+vnoremap <C-k> {
+vnoremap , :b#<Cr>
+nnoremap q @
+nnoremap @ q
 
-map { <Nop>
-map } <Nop>
+nnoremap <A-o> o<Esc>
+nnoremap <A-O> O<Esc>
+nnoremap <CR> i<CR><Esc>
 
-noremap { <C-u>
-noremap } <C-d>
-noremap <C-j> }
-noremap <C-k> {
-noremap <C-h> B
-noremap <C-l> W
-noremap <C-n> <C-d>
-noremap <C-s> <C-w>
+nnoremap <A-m> :make<BAR>copen<CR><CR><C-w><C-p>
+nnoremap <A-n> :cn<CR>
+nnoremap <A-p> :cp<CR>
 
-noremap <silent> <leader>a :b#<CR>
-noremap <silent> <leader>s :noh<CR>
-
-nnoremap c* /\<<C-R>=expand('<cword>')<CR>\>\C<CR>``cgn
-nnoremap c# ?\<<C-R>=expand('<cword>')<CR>\>\C<CR>``cgN
-
-" Emacs kill-yank functionality
-" (most important key bindings)
-nnoremap <C-d> mm
-nnoremap <C-w> d`m
-nnoremap <C-q> y`m
-nnoremap <C-f> P
-
-" autocmd(s)
-autocmd BufWritePre * %s/\s\+$//e
-autocmd FileType html setlocal shiftwidth=2 softtabstop=2 expandtab noautoindent nosmartindent
-autocmd FileType css setlocal shiftwidth=2 softtabstop=2 expandtab
-
-if has("gui_running")
-autocmd GUIEnter * set vb t_vb=
-set guioptions -=m
-set guioptions -=T
-set guioptions -=r
-set guioptions -=L
-set guioptions -=b
-endif
-
-" ctrlp Settings
-set wildignore+=*/target/*,*/build/*,*/bin/*,*/obj/*,*.o,*.so,*.a
-let g:ctrlp_by_filename=0
-let g:ctrlp_working_path_mode=0
+nnoremap <leader>s :noh<CR>
