@@ -1,0 +1,12 @@
+[user]
+	email = shk.huz@gmail.com
+	name = Huzaifa Shaikh
+[alias]
+	s = status
+	co = checkout
+[core]
+	editor = vim
+[pull]
+	ff = only
+[ff]
+	only = false
