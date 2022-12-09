@@ -18,18 +18,21 @@
 (setq-default tab-width 4)
 (setq tab-stop-list (number-sequence 4 200 4))
 
+(setq backup-directory-alist '(("." . "~/.trash")))
+
 (setq undo-limit 20000000)
 (setq undo-strong-limit 40000000)
 
 (setq-default
  whitespace-line-column 80
  whitespace-style       '(face lines-tail))
+(global-whitespace-mode 1)
 
 (add-hook 'prog-mode-hook #'whitespace-mode)
 (setq column-number-mode t)
 
 (setq string-rectangle-history nil)
-(setq inhibit-startup-message t) 
+(setq inhibit-startup-message t)
 (setq initial-scratch-message nil)
 
 (global-display-line-numbers-mode 1)
@@ -43,40 +46,52 @@
 (use-package cc-mode)
 (god-mode)
 
+(defun clean-file ()
+  (interactive)
+  (save-excursion
+    (untabify (point-min) (point-max))
+    (replace-regexp "[[:blank:]]+$" "" nil (point-min) (point-max))))
+
+(add-hook 'before-save-hook 'clean-file)
+
 (defun beginning-of-line++ ()
   (interactive)
   (if (bolp)
       (back-to-indentation)
     (beginning-of-line)))
 
-(defun newline-and-indent-same-level ()
-  "Insert a newline, then indent to the same column as the current line."
+(defun open-line-and-indent-same-level (func)
   (interactive)
-  (let ((col (save-excursion
+  (let ((cur-col (current-column))
+        (col (save-excursion
                (back-to-indentation)
                (current-column))))
-    (newline)
+    (if (< cur-col col)
+        (setq col cur-col))
+    (funcall func)
     (indent-to-column col)))
+
+(defun newline-and-indent-same-level ()
+  (interactive)
+  (open-line-and-indent-same-level 'newline))
 
 (define-key input-decode-map [?\C-m] [C-m])
 (define-key input-decode-map [?\C-i] [C-i])
 (define-key input-decode-map [?\C-j] [C-j])
-          
-(defun backward-delete-whitespace-to-column ()
-  "delete back to the previous column of whitespace, or as much whitespace as possible,
-or just one char if that's not possible"
+
+(defun my-backward-delete-char ()
   (interactive)
-  (if indent-tabs-mode
-      (call-interactively 'backward-delete-char-untabify)
-    (let ((movement (% (current-column) tab-width))
-          (p (point)))
-      (when (= movement 0) (setq movement tab-width))
-      (save-match-data
-        (if (string-match "\\w*\\(\\s-+\\)$" (buffer-substring-no-properties (- p movement) p))
-            (backward-delete-char-untabify (- (match-end 1) (match-beginning 1)))
-        (call-interactively 'backward-delete-char-untabify))))))
-                  
-(define-minor-mode huz-mode 
+  (if
+    (and
+      (> (point) 4)
+      (eq ?  (char-before (point)))
+      (eq ?  (char-before (- (point) 1)))
+      (eq ?  (char-before (- (point) 2)))
+      (eq ?  (char-before (- (point) 3))))
+    (backward-delete-char-untabify 4)
+    (backward-delete-char-untabify 1)))
+
+(define-minor-mode huz-mode
   "My personal minor mode"
   :lighter " huz"
   :keymap (let ((map (make-sparse-keymap)))
@@ -86,8 +101,8 @@ or just one char if that's not possible"
                               (interactive)
                               (god-local-mode t)))
             (define-key map (kbd "TAB") 'tab-to-tab-stop)
-            (define-key map (kbd "DEL") 'backward-delete-whitespace-to-column)
             (define-key map (kbd "<return>") 'newline-and-indent-same-level)
+            (define-key map (kbd "DEL") 'my-backward-delete-char)
             (define-key map (kbd "C-h") 'left-char)
             (define-key map (kbd "C-j") 'next-line)
             (define-key map (kbd "C-k") 'previous-line)
@@ -115,24 +130,36 @@ or just one char if that's not possible"
             (define-key map (kbd "C-x C-0") #'delete-window)
             (define-key map (kbd "C-x C-o") #'other-window)
             (define-key map (kbd "C-x C-k") #'kill-buffer)
-            (define-key map (kbd "C-S-I")
+            (define-key map (kbd "C-,")
                             (lambda ()
                               (interactive)
                               (end-of-line)
                               (god-local-mode -1)
                               (newline-and-indent-same-level)))
+            (define-key map (kbd "C-<")
+                            (lambda ()
+                              (interactive)
+                              (end-of-line)
+                              (god-local-mode -1)
+                              (open-line-and-indent-same-level
+                                (lambda ()
+                                  (beginning-of-line)
+                                  (newline)
+                                  (previous-line)))))
             (define-key map (kbd "M-f") 'replace-rectangle)
+            (define-key map (kbd "M-c") 'delete-rectangle)
             map))
 
-(add-hook 'after-change-major-mode-hook 
-          (lambda() 
+(add-hook 'after-change-major-mode-hook
+          (lambda()
             (electric-indent-mode -1)))
-            
-(add-hook 'text-mode-hook 'huz-mode)           
-(add-hook 'prog-mode-hook 'huz-mode)           
+
+(add-hook 'text-mode-hook 'huz-mode)
+(add-hook 'prog-mode-hook 'huz-mode)
+(add-hook 'special-mode-hook 'huz-mode)
+(add-hook 'find-file-hook 'huz-mode)
 
 (huz-mode 1)
-(add-to-list 'auto-mode-alist '("\\.ar\\'" . text-mode))
 
 (define-key god-local-mode-map (kbd "m") 'forward-paragraph)
 (define-key god-local-mode-map (kbd "u") 'backward-paragraph)
